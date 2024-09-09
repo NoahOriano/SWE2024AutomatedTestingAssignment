@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CodeCoverageReport</a> &gt; <a href="index.source.html" class="el_package">ltu</a> &gt; <span class="el_source">PaymentImpl.java</span></div><h1>PaymentImpl.java</h1><pre class="source lang-java linenums">package ltu;
+
+import static java.lang.Integer.parseInt;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Properties;
+
+public class PaymentImpl implements IPayment
+{
+
+    private static final String DEFAULT_RULES = &quot;student100loan=7088\nstudent100subsidy=2816\nstudent50loan=3564\nstudent50subsidy=1396\nstudent0loan=0\nstudent0subsidy=0\nfulltimeIncome=85813\nparttimeIncome=128722\n&quot;;
+    private final int FULL_LOAN;
+    private final int HALF_LOAN;
+    private final int ZERO_LOAN;
+    private final int FULL_SUBSIDY;
+    private final int HALF_SUBSIDY;
+    private final int ZERO_SUBSIDY;
+    private final int FULLTIME_INCOME;
+    private final int PARTTIME_INCOME;
+    private final ICalendar calendar;
+    private final Properties props;
+
+    public PaymentImpl(ICalendar calendar) throws IOException
+    {
+<span class="nc" id="L29">        this(calendar, DEFAULT_RULES);</span>
+<span class="nc" id="L30">    }</span>
+
+    public PaymentImpl(ICalendar cal, String rules) throws IOException
+<span class="nc" id="L33">    {</span>
+<span class="nc" id="L34">        calendar = cal;</span>
+<span class="nc" id="L35">        props = new Properties();</span>
+        try
+        {
+<span class="nc" id="L38">            props.load(new StringReader(rules));</span>
+<span class="nc" id="L39">        } catch (IOException e)</span>
+        {
+<span class="nc" id="L41">            e.printStackTrace();</span>
+<span class="nc" id="L42">            throw e;</span>
+<span class="nc" id="L43">        }</span>
+<span class="nc" id="L44">        FULL_LOAN = parseInt((String) props.get(&quot;student100loan&quot;));</span>
+<span class="nc" id="L45">        HALF_LOAN = parseInt((String) props.get(&quot;student50loan&quot;));</span>
+<span class="nc" id="L46">        ZERO_LOAN = parseInt((String) props.get(&quot;student0loan&quot;));</span>
+<span class="nc" id="L47">        FULL_SUBSIDY = parseInt((String) props.get(&quot;student100subsidy&quot;));</span>
+<span class="nc" id="L48">        HALF_SUBSIDY = parseInt((String) props.get(&quot;student50subsidy&quot;));</span>
+<span class="nc" id="L49">        ZERO_SUBSIDY = parseInt((String) props.get(&quot;student0subsidy&quot;));</span>
+<span class="nc" id="L50">        FULLTIME_INCOME = parseInt((String) props.get(&quot;fulltimeIncome&quot;));</span>
+<span class="nc" id="L51">        PARTTIME_INCOME = parseInt((String) props.get(&quot;parttimeIncome&quot;));</span>
+<span class="nc" id="L52">    }</span>
+
+    @Override
+    public String getNextPaymentDay()
+    {
+<span class="nc" id="L57">    	DateFormat format = new SimpleDateFormat(&quot;yyyyMMdd&quot;);</span>
+<span class="nc" id="L58">    	Calendar cal = Calendar.getInstance();</span>
+<span class="nc" id="L59">        cal.setTime(calendar.getDate());</span>
+<span class="nc" id="L60">        cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DAY_OF_MONTH));</span>
+<span class="nc" id="L61">        int weekDay = cal.get(Calendar.DAY_OF_WEEK);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (weekDay == Calendar.SUNDAY)</span>
+        {
+<span class="nc" id="L64">            cal.add(Calendar.DATE, -2);</span>
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        } else if (weekDay == Calendar.SATURDAY)</span>
+        {
+<span class="nc" id="L68">            cal.add(Calendar.DATE, -1);</span>
+
+        }
+<span class="nc" id="L71">        return format.format(cal.getTime());</span>
+    }
+
+    @Override
+    public int getMonthlyAmount(String personId, int income, int studyRate, int completionRatio)
+            throws IllegalArgumentException
+    {
+<span class="nc bnc" id="L78" title="All 8 branches missed.">        if (personId == null || income &lt; 0 || studyRate &lt; 0 || completionRatio &lt; 0)</span>
+        {
+<span class="nc" id="L80">            throw new IllegalArgumentException(&quot;Invalid input.&quot;);</span>
+        }
+<span class="nc" id="L82">        int age = getAge(personId);</span>
+<span class="nc" id="L83">        int amount = getLoan(age, income, studyRate, completionRatio);</span>
+<span class="nc" id="L84">        amount += getSubsidy(age, income, studyRate, completionRatio);</span>
+<span class="nc" id="L85">        return amount;</span>
+    }
+
+    private int getAge(String personId)
+    {
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        if (personId == null || personId.length() != 13)</span>
+        {
+<span class="nc" id="L92">            throw new IllegalArgumentException(&quot;Invalid personId: &quot; + personId);</span>
+        }
+<span class="nc" id="L94">        int personYear = parseInt(personId.substring(0, 4));</span>
+<span class="nc" id="L95">        int paymentYear = parseInt(new SimpleDateFormat(&quot;yyyy&quot;).format(calendar.getDate()));</span>
+<span class="nc" id="L96">        int age = paymentYear - personYear;</span>
+<span class="nc" id="L97">        return age;</span>
+    }
+
+    private int getLoan(int age, int income, int studyRate, int completionRatio)
+    {
+<span class="nc bnc" id="L102" title="All 8 branches missed.">        if (studyRate &lt; 50 || age &lt; 20 || age &gt;= 47 || completionRatio &lt; 50)</span>
+        {
+<span class="nc" id="L104">            return ZERO_LOAN;</span>
+        }
+<span class="nc bnc" id="L106" title="All 4 branches missed.">        if (studyRate &gt;= 100 &amp;&amp; income &gt; FULLTIME_INCOME)</span>
+        {
+<span class="nc" id="L108">            return ZERO_LOAN;</span>
+        }
+<span class="nc bnc" id="L110" title="All 4 branches missed.">        if (studyRate &lt; 100 &amp;&amp; income &gt; PARTTIME_INCOME)</span>
+        {
+<span class="nc" id="L112">            return ZERO_LOAN;</span>
+        }
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (studyRate &lt; 100)</span>
+        {
+<span class="nc" id="L116">            return HALF_LOAN;</span>
+        }
+<span class="nc" id="L118">        return FULL_LOAN;</span>
+    }
+
+    private int getSubsidy(int age, int income, int studyRate, int completionRatio)
+    {
+<span class="nc bnc" id="L123" title="All 8 branches missed.">        if (studyRate &lt; 50 || age &lt; 20 || age &gt; 56 || completionRatio &lt; 50)</span>
+        {
+<span class="nc" id="L125">            return ZERO_SUBSIDY;</span>
+        }
+<span class="nc bnc" id="L127" title="All 4 branches missed.">        if (studyRate &gt;= 100 &amp;&amp; income &gt; FULLTIME_INCOME)</span>
+        {
+<span class="nc" id="L129">            return ZERO_SUBSIDY;</span>
+        }
+<span class="nc bnc" id="L131" title="All 4 branches missed.">        if (studyRate &lt; 100 &amp;&amp; income &gt; PARTTIME_INCOME)</span>
+        {
+<span class="nc" id="L133">            return ZERO_SUBSIDY;</span>
+        }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (studyRate &lt; 100)</span>
+        {
+<span class="nc" id="L137">            return HALF_SUBSIDY;</span>
+        }
+<span class="nc" id="L139">        return FULL_SUBSIDY;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
