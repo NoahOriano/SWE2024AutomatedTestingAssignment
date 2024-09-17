@@ -249,8 +249,8 @@ public class PaymentTest
         // Each person is 26 and qualifies for subsidiary and student loans at 100%
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
         Person person1TooMuch  = new Person("19900918-1234", 100000, 100, 51);
-        Person person2SlightlyTooMuch  = new Person("19900918-1234", MAX_INCOME_FULL_TIME, 100, 51);
-        Person person3JustUnder = new Person("19900918-1234", 85813, 100, 51);
+        Person person2SlightlyTooMuch  = new Person("19900918-1234", MAX_INCOME_FULL_TIME+1, 100, 51);
+        Person person3JustUnder = new Person("19900918-1234", MAX_INCOME_FULL_TIME, 100, 51);
         Person person4UnderLimit = new Person("19900918-1234", 500, 100, 51);
 
         // Test each person
@@ -273,8 +273,8 @@ public class PaymentTest
         // Each person is 26 and qualifies for subsidiary and student loans at 50%
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
         Person person1TooMuch  = new Person("19900918-1234", 130000, 50, 51);
-        Person person2SlightlyTooMuch  = new Person("19900918-1234", MAX_INCOME_PART_TIME, 50, 51);
-        Person person3JustUnder = new Person("19900918-1234", 128722, 50, 51);
+        Person person2SlightlyTooMuch  = new Person("19900918-1234", MAX_INCOME_PART_TIME+1, 50, 51);
+        Person person3JustUnder = new Person("19900918-1234", MAX_INCOME_PART_TIME, 50, 51);
         Person person4UnderLimit = new Person("19900918-1234", 500, 50, 51);
 
         // Test each person
