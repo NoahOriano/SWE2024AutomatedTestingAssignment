@@ -50,24 +50,24 @@ public class PaymentTest
     public static final int testYear = 2016;
     // Sut class for consistent testing, each test will have a fresh instance of this class
     public class Sut{
+        public class MockCalender implements ICalendar{
+            private Date mockedDate = new Date(116, Calendar.JANUARY,1); // Year 116 is 2016
+            public Date getDate() {
+                return this.mockedDate;
+            }
+            private void setDate(Date date) {
+                this.mockedDate = date;
+            }
+        }
         public Sut(){
-            mockCalender = new ICalendar(){
-                private Date mockedDate = new Date(116, Calendar.JANUARY,1); // Year 116 is 2016
-                public Date getDate() {
-                    return this.mockedDate;
-                }
-
-                private void setDate(Date date) {
-                    this.mockedDate = date;
-                }
-            };
+            mockCalender = new MockCalender();
             try {
                 paymentService = new PaymentImpl(mockCalender);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        public ICalendar mockCalender;
+        public MockCalender mockCalender;
         public PaymentImpl paymentService;
     }
 
@@ -92,6 +92,56 @@ public class PaymentTest
         assertNotNull(sut.mockCalender.getDate());
         assertNotNull(sut.paymentService);
         assertEquals(1,1);
+    }
+
+    @Test
+    public void shouldThrowErrorWithInvalidPersonId(){
+        Sut sut = new Sut();
+        // 12 digit number
+        Person person = new Person("199009180-1234", 0, 100, 51);
+        try{
+            sut.paymentService.getMonthlyAmount(person.personId, person.income, person.studyRate, person.completionRatio);
+            fail("Should throw exception when personId is 12 digits");
+        } catch (IllegalArgumentException e){
+            assertEquals("Invalid personId: "+person.personId, e.getMessage());
+        }
+        // 10 digit number
+        person = new Person("1990180-1234", 0, 100, 51);
+        try{
+            sut.paymentService.getMonthlyAmount(person.personId, person.income, person.studyRate, person.completionRatio);
+            fail("Should throw exception");
+        } catch (IllegalArgumentException e){
+            assertEquals("Invalid personId: "+person.personId, e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldThrowErrorWithInvalidInputs(){
+        Sut sut = new Sut();
+        // Negative income
+        Person person = new Person("19900918-1234", -1, 100, 51);
+        try{
+            sut.paymentService.getMonthlyAmount(person.personId, person.income, person.studyRate, person.completionRatio);
+            fail("Should throw exception when income is negative");
+        } catch (IllegalArgumentException e){
+            assertEquals("Invalid input.", e.getMessage());
+        }
+        // Negative study rate
+        person = new Person("19900918-1234", 0, -1, 51);
+        try{
+            sut.paymentService.getMonthlyAmount(person.personId, person.income, person.studyRate, person.completionRatio);
+            fail("Should throw exception when study rate is negative");
+        } catch (IllegalArgumentException e){
+            assertEquals("Invalid input.", e.getMessage());
+        }
+        // Negative completion ratio
+        person = new Person("19900918-1234", 0, 100, -1);
+        try{
+            sut.paymentService.getMonthlyAmount(person.personId, person.income, person.studyRate, person.completionRatio);
+            fail("Should throw exception when completion ratio is negative");
+        } catch (IllegalArgumentException e){
+            assertEquals("Invalid input.", e.getMessage());
+        }
     }
 
     @Test
@@ -251,5 +301,19 @@ public class PaymentTest
                 person3LessThanHalfTime.studyRate, person3LessThanHalfTime.completionRatio));
     }
 
+    @Test
+    public void shouldRetrieveNextPaymentDay(){
+        Sut sut = new Sut();
+        // Test the first day of the term
+        sut.mockCalender.setDate(new Date(116, Calendar.JANUARY,1));
+        assertEquals("20160129", sut.paymentService.getNextPaymentDay()); // January 29th
+
+        // Test the last day of the term
+        sut.mockCalender.setDate(new Date(116, Calendar.JUNE,30));
+        assertEquals("20160630", sut.paymentService.getNextPaymentDay());
+        // Test a random day
+        sut.mockCalender.setDate(new Date(116, Calendar.MARCH,15));
+        assertEquals("20160331", sut.paymentService.getNextPaymentDay());
+    }
 
 }
