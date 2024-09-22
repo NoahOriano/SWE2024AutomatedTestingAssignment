@@ -315,15 +315,17 @@ public class PaymentTest
     @Test
     public void shouldRetrieveNextPaymentDay(){
         Sut sut = new Sut();
-        // Test the first day of the term
+        // Test January which ends on a Sunday with a date at the start of the term
         sut.mockCalender.setDate(new Date(116, Calendar.JANUARY,1));
+        // There are 31 days in January, but the last is a sunday, so the last weekday is the 29th
         assertEquals("20160129", sut.paymentService.getNextPaymentDay()); // January 29th
 
-        // Test the last day of the term
+        // Test the last day of the term which is a Thursday in June
         sut.mockCalender.setDate(new Date(116, Calendar.JUNE,30));
         assertEquals("20160630", sut.paymentService.getNextPaymentDay()); // June 30th
-        // Test a random day
-        sut.mockCalender.setDate(new Date(116, Calendar.MARCH,15));
-        assertEquals("20160331", sut.paymentService.getNextPaymentDay()); // March 31st
+
+        // Test a day in the middle of a month on a month that ends on a Saturday in 2016 (April)
+        sut.mockCalender.setDate(new Date(116, Calendar.APRIL,15));
+        assertEquals("20160429", sut.paymentService.getNextPaymentDay()); // March 29th
     }
 }
