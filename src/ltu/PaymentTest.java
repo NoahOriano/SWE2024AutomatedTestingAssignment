@@ -147,7 +147,7 @@ public class PaymentTest
 
     // When a student is 19 or younger, they should not receive any subsidiary or student loans
     @Test
-    public void studentMustBe20(){
+    public void studentMustBeAtLeast20(){
         // Example person number = YYYYMMDD-nnnC, where C is a control digit, e.g. 20001219-3421
         Sut sut = new Sut();
         // Four test people, one who is 17, one who is 19, one who is 20, one who is 21
@@ -158,8 +158,6 @@ public class PaymentTest
         Person person4OldEnough = new Person("19951118-1234", 0, 100, 51);
 
         // Test each person
-        System.out.println(sut.mockCalender.getDate());
-        System.out.println(person1TooYoung.personId.substring(0, 4));
         assertEquals(0, sut.paymentService.getMonthlyAmount(person1TooYoung.personId, person1TooYoung.income,
                 person1TooYoung.studyRate, person1TooYoung.completionRatio));
         assertEquals(0, sut.paymentService.getMonthlyAmount(person2TooYoung.personId, person2TooYoung.income,
@@ -202,7 +200,7 @@ public class PaymentTest
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
         Person person1TooOld  = new Person("19650918-1234", 0, 100, 51);
         Person person2TooOld  = new Person("19681229-1234", 0, 100, 51);
-        Person person3YoungEnough = new Person("19700201-1234", 0, 100, 51);
+        Person person3YoungEnough = new Person("19690201-1234", 0, 100, 51);
         Person person4YoungEnough = new Person("19720118-1234", 0, 100, 51);
 
         // Test each person
@@ -272,7 +270,7 @@ public class PaymentTest
         // Four test people, one who earns way too much, one who earns slightly too much, one who is just under limit, one who is way under limit
         // Each person is 26 and qualifies for subsidiary and student loans at 50%
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
-        Person person1TooMuch  = new Person("19900918-1234", 130000, 50, 51);
+        Person person1TooMuch  = new Person("19900918-1234", 230000, 50, 51);
         Person person2SlightlyTooMuch  = new Person("19900918-1234", MAX_INCOME_PART_TIME+1, 50, 51);
         Person person3JustUnder = new Person("19900918-1234", MAX_INCOME_PART_TIME, 50, 51);
         Person person4UnderLimit = new Person("19900918-1234", 500, 50, 51);
@@ -299,16 +297,22 @@ public class PaymentTest
         // Each person is 26 and qualifies for subsidiary and student loans
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
         Person person1FullTime  = new Person("19900918-1234", 0, 100, 51);
-        Person person2HalfTime  = new Person("19900918-1234", 0, 50, 51);
-        Person person3LessThanHalfTime = new Person("19900918-1234", 0, 49, 51);
-
-        // Test each person
-        assertEquals(SUBSIDY_100 + LOAN_100, sut.paymentService.getMonthlyAmount(person1FullTime.personId, person1FullTime.income,
-                person1FullTime.studyRate, person1FullTime.completionRatio));
-        assertEquals(SUBSIDY_50 + LOAN_50, sut.paymentService.getMonthlyAmount(person2HalfTime.personId, person2HalfTime.income,
-                person2HalfTime.studyRate, person2HalfTime.completionRatio));
-        assertEquals(0, sut.paymentService.getMonthlyAmount(person3LessThanHalfTime.personId, person3LessThanHalfTime.income,
-                person3LessThanHalfTime.studyRate, person3LessThanHalfTime.completionRatio));
+        Person person2JustUnderFullTime  = new Person("19900918-1234", 0, 99, 50);
+        Person person3HalfTime  = new Person("19900918-1234", 0, 50, 51);
+        Person person4LessThanHalfTime = new Person("19900918-1234", 0, 49, 51);
+        int fullTimePay = sut.paymentService.getMonthlyAmount(person1FullTime.personId, person1FullTime.income,
+                person1FullTime.studyRate, person1FullTime.completionRatio);
+        int justUnderFullTimePay = sut.paymentService.getMonthlyAmount(person2JustUnderFullTime.personId, person2JustUnderFullTime.income,
+                person2JustUnderFullTime.studyRate, person2JustUnderFullTime.completionRatio);
+        int halfTimePay = sut.paymentService.getMonthlyAmount(person3HalfTime.personId, person3HalfTime.income,
+                person3HalfTime.studyRate, person3HalfTime.completionRatio);
+        int lessThanHalfTimePay = sut.paymentService.getMonthlyAmount(person4LessThanHalfTime.personId, person4LessThanHalfTime.income,
+                person4LessThanHalfTime.studyRate, person4LessThanHalfTime.completionRatio);
+        // Test the relative amounts of subsidiary and loan payments.
+        assertTrue(fullTimePay > justUnderFullTimePay);
+        assertEquals(halfTimePay, justUnderFullTimePay);
+        assertTrue(halfTimePay > lessThanHalfTimePay);
+        assertEquals(0, lessThanHalfTimePay);
     }
 
     // When the getNextPaymentDay is called, it should return the last weekday of the month
@@ -316,8 +320,8 @@ public class PaymentTest
     public void shouldRetrieveNextPaymentDay(){
         Sut sut = new Sut();
         // Test January which ends on a Sunday with a date at the start of the term
-        sut.mockCalender.setDate(new Date(116, Calendar.JANUARY,1));
         // There are 31 days in January, but the last is a sunday, so the last weekday is the 29th
+        sut.mockCalender.setDate(new Date(116, Calendar.JANUARY,1));
         assertEquals("20160129", sut.paymentService.getNextPaymentDay()); // January 29th
 
         // Test the last day of the term which is a Thursday in June
@@ -325,7 +329,42 @@ public class PaymentTest
         assertEquals("20160630", sut.paymentService.getNextPaymentDay()); // June 30th
 
         // Test a day in the middle of a month on a month that ends on a Saturday in 2016 (April)
+        // The last day is the 30th, which is a Saturday, so the last weekday is the 29th
         sut.mockCalender.setDate(new Date(116, Calendar.APRIL,15));
         assertEquals("20160429", sut.paymentService.getNextPaymentDay()); // March 29th
     }
+
+    @Test
+    public void shouldHaveCorrectFullTimeLoanAndSubsidyAmount(){
+        Sut sut = new Sut();
+        // Test person who is full time, 26 years old, has completed 51% of studies and has an income of 0
+        Person fullTimePerson = new Person("19900918-1234", 0, 100, 51);
+        assertEquals(LOAN_100 + SUBSIDY_100, sut.paymentService.getMonthlyAmount(fullTimePerson.personId, fullTimePerson.income, fullTimePerson.studyRate, fullTimePerson.completionRatio));
+    }
+
+    @Test
+    public void shouldHaveCorrectFullTimeSubsidyAmount(){
+        Sut sut = new Sut();
+        // Test person who is full time, 52 years old, has completed 51% of studies and has an income of 0
+        // They do not qualify for student loans, but they do qualify for subsidiary
+        Person fullTimePerson = new Person("19640918-1234", 0, 100, 51);
+        assertEquals(SUBSIDY_100, sut.paymentService.getMonthlyAmount(fullTimePerson.personId, fullTimePerson.income, fullTimePerson.studyRate, fullTimePerson.completionRatio));
+        }
+
+    @Test
+    public void shouldHaveCorrectPartTimeLoanAndSubsidyAmount(){
+        Sut sut = new Sut();
+        // Test person who is part time, 26 years old, has completed 51% of studies and has an income of 0
+        Person partTimePerson = new Person("19900918-1234", 0, 50, 51);
+        assertEquals(LOAN_50 + SUBSIDY_50, sut.paymentService.getMonthlyAmount(partTimePerson.personId, partTimePerson.income, partTimePerson.studyRate, partTimePerson.completionRatio));
+        }
+
+    @Test
+    public void shouldHaveCorrectPartTimeSubsidyAmount(){
+        Sut sut = new Sut();
+        // Test person who is part time, 52 years old, has completed 51% of studies and has an income of 0
+        // They do not qualify for student loans, but they do qualify for subsidiary
+        Person partTimePerson = new Person("19640918-1234", 0, 50, 51);
+        assertEquals(SUBSIDY_50, sut.paymentService.getMonthlyAmount(partTimePerson.personId, partTimePerson.income, partTimePerson.studyRate, partTimePerson.completionRatio));
+        }
 }
