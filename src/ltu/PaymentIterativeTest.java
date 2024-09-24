@@ -108,7 +108,7 @@ public class PaymentIterativeTest {
         PaymentTest.Sut sut = new PaymentTest.Sut();
         boolean failure = false;
         for(TestMonth testMonth : testMonths){
-            sut.mockCalender.setDate(new Date(116, testMonth.month, testMonth.days)); // year 116 is 2016
+            sut.mockCalender.setDate(new Date(116, testMonth.month, 1)); // year 116 is 2016
             String expectedDate = 2016+"0"+(testMonth.month+1)+""+testMonth.lastWeekday; // 0 is added to month to make it 2 digits
             String actualDate = sut.paymentService.getNextPaymentDay();
             if(!expectedDate.equals(actualDate)){
