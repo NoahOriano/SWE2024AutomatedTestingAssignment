@@ -1,0 +1,12 @@
+NOTES AND REMARKS
+
+Jacoco
+- Could not get Jacoco to properly run with the project, so while the coverage report exists, it is not accurate.
+- The coverage report and Jacoco file are still included in an unmodified state.
+
+Testing Approach
+- The testing approach was split into two parts: requirements and iterative tests for edge cases
+- This proved to be helpful since only four out of the six errors were caught by the requirements tests
+- The iterative tests were able to catch the remaining two errors
+- Without the requirements tests, the iterative test output would have taken longer to understand and debug
+- The testing for requirements also helps shape and ensure the correctness of the iterative tests which are more complex
