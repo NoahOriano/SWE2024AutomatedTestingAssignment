@@ -8,6 +8,12 @@ import java.util.Date;
 
 import org.junit.Test;
 
+// The intention behind the PaymentTest class is to test the PaymentImpl class with a single requirement approach
+// This allows for a more focused approach to testing, and allows for more detailed testing of the PaymentImpl class
+// However, this approach does not test the PaymentImpl class with a wide range of cases
+// When combined with the PaymentIterativeTest class, the PaymentImpl class can be tested more fully
+// PaymentTest provides the first layer of testing for quick understanding of errors
+// See PaymentIterativeTest for a more robust testing approach
 public class PaymentTest
 {
     //Test the system for the spring-term of 2016 (2016-01-01 to 2016-06-30).
