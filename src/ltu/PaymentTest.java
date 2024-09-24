@@ -48,13 +48,13 @@ public class PaymentTest
     public static final int MAX_INCOME_FULL_TIME = 85813;
     public static final int MAX_INCOME_PART_TIME = 128722;
     // Sut class for consistent testing, each test will have a fresh instance of this class
-    public class Sut{
-        public class MockCalender implements ICalendar{
+    public static class Sut{
+        public static class MockCalender implements ICalendar{
             private Date mockedDate = new Date(116, Calendar.JANUARY,1); // Year 116 is 2016
             public Date getDate() {
                 return this.mockedDate;
             }
-            private void setDate(Date date) {
+            public void setDate(Date date) {
                 this.mockedDate = date;
             }
         }
@@ -199,9 +199,9 @@ public class PaymentTest
         // Four test people, one who is older, one who is just too old, one who is just under 47, one who is 45
         // The term is spring-term of 2016 (2016-01-01 to 2016-06-30)
         Person person1TooOld  = new Person("19650918-1234", 0, 100, 51);
-        Person person2TooOld  = new Person("19681229-1234", 0, 100, 51);
-        Person person3YoungEnough = new Person("19690201-1234", 0, 100, 51);
-        Person person4YoungEnough = new Person("19720118-1234", 0, 100, 51);
+        Person person2TooOld  = new Person("19691229-1234", 0, 100, 51);
+        Person person3YoungEnough = new Person("19700201-1234", 0, 100, 51);
+        Person person4YoungEnough = new Person("19710118-1234", 0, 100, 51);
 
         // Test each person
         assertEquals(SUBSIDY_100, sut.paymentService.getMonthlyAmount(person1TooOld.personId, person1TooOld.income,
