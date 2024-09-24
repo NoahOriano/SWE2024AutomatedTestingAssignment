@@ -1,5 +1,5 @@
 @echo off
-set JDK_HOME="C:\Program Files\Java SDK\OpenJDK-21"
+set JDK_HOME=c:\PROGRA~1\Java\jdk1.8.0_45
 set REPORT=lib\jacococli.jar
 set AGENT=lib\jacocoagent.jar
 set JUNIT=lib\org.junit4-4.3.1.jar
